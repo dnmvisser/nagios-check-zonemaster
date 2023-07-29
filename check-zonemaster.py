@@ -21,14 +21,17 @@ levels = {
         }
 
 parser = argparse.ArgumentParser(
-        description = 'Nagios plugin to test DNS zones. This is a wrapper aound the '
+        description = 'Nagios plugin to test DNS zones. This is a wrapper around the '
         'zonemaster-cli command (https://github.com/zonemaster/zonemaster-cli)')
 parser.add_argument('--domain',
                     help = 'Domain to test',
                     required = True)
 parser.add_argument('--command',
-                    help = 'Zone-master command (default: \'zonemaster\')',
+                    help = 'zonemaster command (default: \'zonemaster-cli\')',
                     default = 'zonemaster-cli')
+parser.add_argument('--policy',
+                    help = 'Path to a zonemaster policy file. This is only '
+                    'supported in zonemaster-cli v1')
 parser.add_argument('--profile',
                     help = 'Path to a zonemaster profile file')
 parser.add_argument('--critical',
@@ -47,21 +50,38 @@ parser.add_argument('--level',
                     default = 'INFO')
 args = parser.parse_args()
 
-
-def nagios_exit(message, code):
-    print(message)
-    sys.exit(code)
-
-if levels[args.critical] < levels[args.warning]:
-    parser.error('The level to raise a WARNING can not be higher'
-                 'than the level to raise a CRITICAL')
-
 domain = args.domain
 command = args.command
 critical = args.critical
 warning = args.warning
 level = args.level
 profile = args.profile
+policy = args.policy
+
+# Sanity checks
+if levels[critical] < levels[warning]:
+    parser.error('The level to raise a WARNING can not be higher'
+                 'than the level to raise a CRITICAL')
+
+# Functions
+def nagios_exit(message, code):
+    print(message)
+    sys.exit(code)
+
+NOT_WHITESPACE = re.compile(r'\S')
+from json import JSONDecoder, JSONDecodeError
+def decode_stacked_json(document, pos=0, decoder=JSONDecoder()):
+    while True:
+        match = NOT_WHITESPACE.search(document, pos)
+        if not match:
+            return
+        pos = match.start()
+        try:
+            obj, pos = decoder.raw_decode(document, pos)
+        except JSONDecodeError:
+            # do something sensible if there's some error
+            raise
+        yield obj
 
 # Possible nagios statuses
 # See https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/pluginapi.html
@@ -72,38 +92,32 @@ msg = {
         'unknown': []
         }
 
+# Start building the command
 subprocess_args = re.split('\s+', command)
 
-# Use custom profile
-if(profile):
-    subprocess_args.extend([
-        '--profile',
-        profile
-        ])
-
-# Set command and arguments
+# Set arguments
 subprocess_args.extend([
-    '--no-raw',
-    '--json',
+    '--json_stream',
+    '--json_translate',  # This is now deprecated
     '--level',
     level,
     domain
     ])
 
-# print(subprocess_args)
+# print(" ".join(subprocess_args))
 
 # Run it
 try:
-    proc = subprocess.run(subprocess_args, capture_output=True)
+    proc = subprocess.run(subprocess_args, capture_output=True, text=True)
 except Exception as e:
     nagios_exit("UNKNOWN: " + str(e), 3)
 
 if(proc.returncode != 0):
     # Put errors on one line
-    output = " ".join([s.strip() for s in proc.stdout.decode('utf-8').split("\n")])
+    output = " ".join([s.strip() for s in proc.stdout.split("\n")])
     nagios_exit(f"UNKNOWN: {output}", 3)
 
-results = json.loads(proc.stdout)['results']
+results = [i for i in decode_stacked_json(proc.stdout)]
 
 oks = [r for r in results if levels[r['level']] < levels[warning]]
 warnings = [r for r in results
