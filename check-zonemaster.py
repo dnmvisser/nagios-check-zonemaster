@@ -2,6 +2,7 @@
 import argparse
 import re
 import sys
+from subprocess import PIPE
 import subprocess
 import json
 import textwrap
@@ -108,7 +109,12 @@ subprocess_args.extend([
 
 # Run it
 try:
-    proc = subprocess.run(subprocess_args, capture_output=True, text=True)
+    proc = subprocess.run(
+        subprocess_args,
+        stdout = PIPE,
+        stderr = PIPE,
+        universal_newlines = True
+        )
 except Exception as e:
     nagios_exit("UNKNOWN: " + str(e), 3)
 
