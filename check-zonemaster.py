@@ -136,54 +136,59 @@ if(proc.returncode != 0):
 
 results = [i for i in decode_stacked_json(proc.stdout)]
 
-oks = [r for r in results if levels[r['level']] < levels[warning]]
-warnings = [r for r in results
-            if levels[r['level']] >= levels[warning] and
-            levels[r['level']] < levels[critical]
-            ]
-criticals = [r for r in results if levels[r['level']] >= levels[critical]]
-
-# Format the string for the Nagios LONGTEXT
-timedecimals = 3
-maxtimewidth = len(str(max([int(r['timestamp']) for r in results])))
-maxlevelwidth = max([len(r['level']) for r in results])
-# The 4 comes from:
-# - the decimal point
-# - the 's' after the seconds
-# - the space between the seconds and the level
-# - the space between the level and the message
-indent = " " * (maxlevelwidth + maxtimewidth + timedecimals + 4)
-
-wrapper = textwrap.TextWrapper(width=78, subsequent_indent=indent)
-longtext = "\n".join([
-    f"{r['timestamp']:{maxtimewidth+3}.{timedecimals}f}s {r['level']:{maxlevelwidth}s} { wrapper.fill(text=r['message']) }"
-    for r in results])
-
-if(len(criticals) > 0):
-    msg['critical'].append("Found {0} issue{1} with severity {2} or higher for {3}\n{4}".format(
-        len(criticals),
-        's' if len(criticals) > 1 else '',
-        critical,
-        domain,
-        longtext
-        )
-    )
-if(len(warnings) > 0):
-    msg['warning'].append("Found {0} issue{1} with severity {2} or higher for {3}\n{4}".format(
-        len(warnings),
-        's' if len(warnings) > 1 else '',
-        warning,
-        domain,
-        longtext
-        )
-    )
-else:
+if len(results) == 0:
     msg['ok'].append("Found no issues with severity {0} or higher for {1}\n{2}".format(
-        warning,
-        domain,
-        longtext
+            warning,
+            domain)
+else:
+    oks = [r for r in results if levels[r['level']] < levels[warning]]
+    warnings = [r for r in results
+                if levels[r['level']] >= levels[warning] and
+                levels[r['level']] < levels[critical]
+                ]
+    criticals = [r for r in results if levels[r['level']] >= levels[critical]]
+
+    # Format the string for the Nagios LONGTEXT
+    timedecimals = 3
+    maxtimewidth = len(str(max([int(r['timestamp']) for r in results])))
+    maxlevelwidth = max([len(r['level']) for r in results])
+    # The 4 comes from:
+    # - the decimal point
+    # - the 's' after the seconds
+    # - the space between the seconds and the level
+    # - the space between the level and the message
+    indent = " " * (maxlevelwidth + maxtimewidth + timedecimals + 4)
+
+    wrapper = textwrap.TextWrapper(width=78, subsequent_indent=indent)
+    longtext = "\n".join([
+        f"{r['timestamp']:{maxtimewidth+3}.{timedecimals}f}s {r['level']:{maxlevelwidth}s} { wrapper.fill(text=r['message']) }"
+        for r in results])
+
+    if(len(criticals) > 0):
+        msg['critical'].append("Found {0} issue{1} with severity {2} or higher for {3}\n{4}".format(
+            len(criticals),
+            's' if len(criticals) > 1 else '',
+            critical,
+            domain,
+            longtext
+            )
         )
-    )
+    if(len(warnings) > 0):
+        msg['warning'].append("Found {0} issue{1} with severity {2} or higher for {3}\n{4}".format(
+            len(warnings),
+            's' if len(warnings) > 1 else '',
+            warning,
+            domain,
+            longtext
+            )
+        )
+    else:
+        msg['ok'].append("Found no issues with severity {0} or higher for {1}\n{2}".format(
+            warning,
+            domain,
+            longtext
+            )
+        )
 
 # Exit with accumulated message(s)
 if len(msg['critical']) > 0:
