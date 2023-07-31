@@ -24,20 +24,20 @@ levels = {
 parser = argparse.ArgumentParser(
         description = 'Nagios plugin to test DNS zones. This is a wrapper around the '
         'zonemaster-cli command (https://github.com/zonemaster/zonemaster-cli)')
-parser.add_argument('--domain',
+parser.add_argument('-d', '--domain',
                     help = 'Domain to test',
                     required = True)
-parser.add_argument('--warning',
+parser.add_argument('-w', '--warning',
                     help = 'Findings of this zonemaster severity level trigger '
                     'a nagios WARNING',
                     choices = levels.keys(),
                     default = 'WARNING')
-parser.add_argument('--critical',
+parser.add_argument('-c', '--critical',
                     help = 'Findings of this zonemaster severity level trigger '
                     'nagios CRITICAL',
                     choices = levels.keys(),
                     default = 'ERROR')
-parser.add_argument('--level',
+parser.add_argument('-l', '--level',
                     help = 'Run zonemaster-cli with this --level option. Useful '
                     'for displaying extra/debug information. Defaults to the '
                     '--warning level. It can not be higher than the --warning or '
@@ -51,7 +51,10 @@ parser.add_argument('--profile',
 parser.add_argument('--policy',
                     help = 'Path to a zonemaster policy file. This is only '
                     'supported in zonemaster-cli v1')
-
+parser.add_argument("-v", "--verbosity",
+                    action = "count",
+                    default = 0,
+                    help = "Increase output verbosity")
 
 args = parser.parse_args()
 
@@ -62,6 +65,7 @@ warning = args.warning
 level = args.level
 profile = args.profile
 policy = args.policy
+verbosity = args.verbosity
 
 # Sanity checks
 if levels[critical] < levels[warning]:
@@ -135,7 +139,7 @@ if(proc.returncode != 0):
     nagios_exit(f"UNKNOWN: {output}", 3)
 
 results = [i for i in decode_stacked_json(proc.stdout)]
-
+pprint(results)
 if len(results) == 0:
     msg['ok'].append("Found no issues with severity {0} or higher for {1}".format(
             warning,
@@ -162,7 +166,9 @@ else:
 
     wrapper = textwrap.TextWrapper(width=80, subsequent_indent=indent)
     longtext = "\n".join([
-        wrapper.fill(text=f"{r['timestamp']:{maxtimewidth+3}.{timedecimals}f}s {r['level']:{maxlevelwidth}s} {r['message']}")
+        wrapper.fill(
+            text=f"{r['timestamp']:{maxtimewidth+3}.{timedecimals}f}s {r['level']:{maxlevelwidth}s} {r['message']} {r['tag'] if verbosity > 0 else ''}"
+        )
         for r in results])
 
     if(len(criticals) > 0):
