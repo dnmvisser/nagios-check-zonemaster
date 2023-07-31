@@ -129,7 +129,7 @@ This can be done by using a special *profile* (this was called *policy* in v1):
 
 1. Dump the default profile to a custom file:
 
-   ```sh
+   ```
    zonemaster-cli --dump-profile > myprofile.json
    ```
 
@@ -151,7 +151,7 @@ This can be done by using a special *profile* (this was called *policy* in v1):
 
 1. Now supply this to the script as the profile:
 
-   ```sh
+   ```
    debian@nagios:~$ ./check-zonemaster.py --profile myprofile.json \
      --domain tienhuis.nl -v
    OK: Found no issues with severity WARNING or higher for tienhuis.nl
