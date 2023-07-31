@@ -112,14 +112,14 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 ### Tips
 
 If you decide that a certain reported problem is acceptable, you can configure
-zonemaster-cli to not run the specific test that reports the problem.
+`zonemaster-cli`` to not run the specific test that reports the problem.
 This can be done by using a special *profile* (this was called *policy* in v1):
 
 1. Find the tag of the specific test that you don't want to run anymore, by
-   supplying the verbose flag:
+   supplying the verbose flag.
 
    ```
-   debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl -v
+   debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl --verbose
    WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
    3.598s WARNING All authoritative nameservers have the IPv4 addresses in the same
                  AS (209453). IPV4_ONE_ASN
@@ -133,10 +133,10 @@ This can be done by using a special *profile* (this was called *policy* in v1):
    zonemaster-cli --dump-profile > myprofile.json
    ```
 
-1. Edit the profile, and **only** keep the entries that you are **not**
-   interested in anymore, by giving them a severity that is *below* the warning
-   level that you intend to use. For the above case, this means the profile
-   looks like this:
+1. Edit the profile, and **only** keep the entries (and their parents) that you
+   are **not** interested in anymore, by giving them a severity that is *below*
+   the warning level that you intend to use. For the above case, this means the
+   profile looks like this:
 
    ```json
    {
@@ -149,7 +149,7 @@ This can be done by using a special *profile* (this was called *policy* in v1):
    }
    ```
 
-1. Now supply this to the script as the profile:
+2. Now supply this to the script as the profile:
 
    ```
    debian@nagios:~$ ./check-zonemaster.py --profile myprofile.json \
