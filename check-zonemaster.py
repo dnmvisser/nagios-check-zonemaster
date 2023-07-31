@@ -137,7 +137,7 @@ if(proc.returncode != 0):
 results = [i for i in decode_stacked_json(proc.stdout)]
 
 if len(results) == 0:
-    msg['ok'].append("Found no issues with severity {0} or higher for {1}\n{2}".format(
+    msg['ok'].append("Found no issues with severity {0} or higher for {1}".format(
             warning,
             domain)
         )
