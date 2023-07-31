@@ -160,9 +160,9 @@ else:
     # - the space between the level and the message
     indent = " " * (maxlevelwidth + maxtimewidth + timedecimals + 4)
 
-    wrapper = textwrap.TextWrapper(width=78, subsequent_indent=indent)
+    wrapper = textwrap.TextWrapper(width=80, subsequent_indent=indent)
     longtext = "\n".join([
-        f"{r['timestamp']:{maxtimewidth+3}.{timedecimals}f}s {r['level']:{maxlevelwidth}s} { wrapper.fill(text=r['message']) }"
+        wrapper.fill(text=f"{r['timestamp']:{maxtimewidth+3}.{timedecimals}f}s {r['level']:{maxlevelwidth}s} {r['message']}")
         for r in results])
 
     if(len(criticals) > 0):
