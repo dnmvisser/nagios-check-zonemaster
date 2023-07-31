@@ -109,9 +109,9 @@ subprocess_args = re.split('\s+', command)
 
 # Set profile/policy options
 if profile is not None:
-    subprocess_args(extend(['--profile', profile]))
+    subprocess_args.extend(['--profile', profile])
 if policy is not None:
-    subprocess_args(extend(['--policy', policy]))
+    subprocess_args.extend(['--policy', policy])
 
 # Set arguments
 subprocess_args.extend([
@@ -139,7 +139,7 @@ if(proc.returncode != 0):
     nagios_exit(f"UNKNOWN: {output}", 3)
 
 results = [i for i in decode_stacked_json(proc.stdout)]
-pprint(results)
+
 if len(results) == 0:
     msg['ok'].append("Found no issues with severity {0} or higher for {1}".format(
             warning,
