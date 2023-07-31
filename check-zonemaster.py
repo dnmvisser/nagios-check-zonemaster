@@ -140,6 +140,7 @@ if len(results) == 0:
     msg['ok'].append("Found no issues with severity {0} or higher for {1}\n{2}".format(
             warning,
             domain)
+        )
 else:
     oks = [r for r in results if levels[r['level']] < levels[warning]]
     warnings = [r for r in results
