@@ -41,14 +41,14 @@ options:
 
 A domain with no issues
 
-```sh
+```
 debian@nagios:~$ ./check-zonemaster.py --domain zonemaster.net
 OK: Found no issues with severity WARNING or higher for zonemaster.net
 ```
 
 A domain with some issues
 
-```sh
+```
 debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl
 WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 3.210s WARNING All authoritative nameservers have the IPv4 addresses in the
@@ -59,7 +59,7 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 
 A domain with some issues, but also print the lesser issues
 
-```sh
+```
 debian@nagios:~$ ./check-zonemaster.py  --level NOTICE --domain tienhuis.nl
 WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 3.496s WARNING All authoritative nameservers have the IPv4 addresses in the
@@ -85,8 +85,9 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 
 The same domain, but now we only want to see the issues with ERROR or higher
 
-```sh
-debian@nagios:~$ ./check-zonemaster.py --warning ERROR --critical CRITICAL --level WARNING --domain tienhuis.nl
+```
+debian@nagios:~$ ./check-zonemaster.py --warning ERROR \
+  --critical CRITICAL --level WARNING --domain tienhuis.nl
 OK: Found no issues with severity ERROR or higher for tienhuis.nl
 3.304s WARNING All authoritative nameservers have the IPv4 addresses in the
                same AS (209453).
@@ -98,8 +99,9 @@ You can also use `zonemaster-cli` from a container, this allows you to use the
 lastest version. In this case I overload the command parameter to exclude IPv6
 tests because IPv6 was too cumbersome to set up in a container:
 
-```sh
-./check-zonemaster.py --command 'podman run --rm -i zonemaster/cli --no-ipv6' --domain tienhuis.nl
+```
+debian@nagios:~$ ./check-zonemaster.py \
+  --command 'podman run --rm -i zonemaster/cli --no-ipv6' --domain tienhuis.nl
 WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 7.017s WARNING All authoritative nameservers have their IPv4 addresses in the
                same AS (209453).
@@ -116,7 +118,7 @@ This can be done by using a special *profile* (this was called *policy* in v1):
 1. Find the tag of the specific test that you don't want to run anymore, by
    supplying the verbose flag:
 
-   ```sh
+   ```
    debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl -v
    WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
    3.598s WARNING All authoritative nameservers have the IPv4 addresses in the same
@@ -150,6 +152,7 @@ This can be done by using a special *profile* (this was called *policy* in v1):
 1. Now supply this to the script as the profile:
 
    ```sh
-   debian@nagios:~$ ./check-zonemaster.py --profile myprofile.json --domain tienhuis.nl -v
+   debian@nagios:~$ ./check-zonemaster.py --profile myprofile.json \
+     --domain tienhuis.nl -v
    OK: Found no issues with severity WARNING or higher for tienhuis.nl
    ```
