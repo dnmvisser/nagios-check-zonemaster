@@ -100,6 +100,12 @@ msg = {
 # Start building the command
 subprocess_args = re.split('\s+', command)
 
+# Set profile/policy options
+if profile is not None:
+    subprocess_args(extend(['--profile', profile]))
+if policy is not None:
+    subprocess_args(extend(['--policy', policy]))
+
 # Set arguments
 subprocess_args.extend([
     '--json_stream',
@@ -108,8 +114,6 @@ subprocess_args.extend([
     level,
     domain
     ])
-
-# print(" ".join(subprocess_args))
 
 # Run it
 try:
