@@ -44,9 +44,10 @@ parser.add_argument('--warning',
                     choices = levels.keys(),
                     default = 'WARNING')
 parser.add_argument('--level',
-                    help = 'Run the zonemaster-cli with this --level option. Useful '
-                    'for tuning the display of extra information. This can not be '
-                    'higher than the --warning or --critical levels',
+                    help = 'Run zonemaster-cli with this --level option. Useful '
+                    'for displaying extra/debug information. This defaults to the '
+                    '--warning level. It can not be higher than the --warning or '
+                    '--critical level',
                     choices = levels.keys(),
                     default = 'INFO')
 args = parser.parse_args()
@@ -63,6 +64,9 @@ policy = args.policy
 if levels[critical] < levels[warning]:
     parser.error('The level to raise a WARNING can not be higher'
                  'than the level to raise a CRITICAL')
+
+if level is None:
+    level = warning
 
 # Functions
 def nagios_exit(message, code):
