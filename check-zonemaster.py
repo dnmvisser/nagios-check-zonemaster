@@ -27,29 +27,32 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--domain',
                     help = 'Domain to test',
                     required = True)
+parser.add_argument('--warning',
+                    help = 'Findings of this zonemaster severity level trigger '
+                    'a nagios WARNING',
+                    choices = levels.keys(),
+                    default = 'WARNING')
+parser.add_argument('--critical',
+                    help = 'Findings of this zonemaster severity level trigger '
+                    'nagios CRITICAL',
+                    choices = levels.keys(),
+                    default = 'ERROR')
+parser.add_argument('--level',
+                    help = 'Run zonemaster-cli with this --level option. Useful '
+                    'for displaying extra/debug information. Defaults to the '
+                    '--warning level. It can not be higher than the --warning or '
+                    '--critical level',
+                    choices = levels.keys())
 parser.add_argument('--command',
                     help = 'zonemaster command (default: \'zonemaster-cli\')',
                     default = 'zonemaster-cli')
+parser.add_argument('--profile',
+                    help = 'Path to a zonemaster profile file')
 parser.add_argument('--policy',
                     help = 'Path to a zonemaster policy file. This is only '
                     'supported in zonemaster-cli v1')
-parser.add_argument('--profile',
-                    help = 'Path to a zonemaster profile file')
-parser.add_argument('--critical',
-                    help = 'Findings of this severity level trigger a CRITICAL',
-                    choices = levels.keys(),
-                    default = 'ERROR')
-parser.add_argument('--warning',
-                    help = 'Findings of this severity level trigger a WARNING',
-                    choices = levels.keys(),
-                    default = 'WARNING')
-parser.add_argument('--level',
-                    help = 'Run zonemaster-cli with this --level option. Useful '
-                    'for displaying extra/debug information. This defaults to the '
-                    '--warning level. It can not be higher than the --warning or '
-                    '--critical level',
-                    choices = levels.keys(),
-                    default = 'INFO')
+
+
 args = parser.parse_args()
 
 domain = args.domain
