@@ -133,26 +133,28 @@ This can be done by using a special *profile* (this was called *policy* in v1):
    zonemaster-cli --dump-profile > myprofile.json
    ```
 
-1. Edit the profile, and **only** keep the entries (and their parents) that you
-   are **not** interested in anymore, by giving them a severity that is *below*
-   the warning level that you intend to use. For the above case, this means the
-   profile looks like this:
-
-   ```json
-   {
-     "test_levels" : {
-         "CONNECTIVITY" : {
+1. Edit the profile, and change the entries to have a severity that is *below*
+   the warning level that you intend to use. For the above case it means these
+   entries will have `WARNING` changed to `NOTICE`:
+ 
+   ```
            "IPV4_ONE_ASN" : "NOTICE",
-           "IPV6_ONE_ASN" : "NOTICE"
-         }
-     }
-   }
+           "IPV6_ONE_ASN" : "NOTICE",
    ```
 
-2. Now supply this to the script as the profile:
+1. Now supply this adjusted profile:
 
    ```
    debian@nagios:~$ ./check-zonemaster.py --profile myprofile.json \
      --domain tienhuis.nl -v
+   OK: Found no issues with severity WARNING or higher for tienhuis.nl
+   ```
+
+   If you use containers you need to make sure the profile file is mounted:
+
+   ```
+   debian@nagios:~$ ./check-zonemaster.py --command 'podman run --rm -i \
+     --mount type=bind,source=/etc/nagios4/myprofile.json,target=/p.json \
+     zonemaster/cli --profile /p.json --no-ipv6' --domain tienhuis.nl
    OK: Found no issues with severity WARNING or higher for tienhuis.nl
    ```
