@@ -71,7 +71,7 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
                the nameservers with IP addresses "173.246.100.215;2001:4b98:aa
                aa::d7;2001:4b98:aaab::79;213.167.230.121;217.70.187.122;2604:3
                400:aaac::7a".
-4.104s NOTICE  CDS RRset is found on nameservers that resolve to IP addresses 
+4.104s NOTICE  CDS RRset is found on nameservers that resolve to IP addresses
                (173.246.100.215;2001:4b98:aaaa::d7;2001:4b98:aaab::79;213.167.
                230.121;217.70.187.122;2604:3400:aaac::7a), but no CDNSKEY
                RRset.
@@ -112,14 +112,14 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 ### Tips
 
 If you decide that a certain reported problem is acceptable, you can configure
-`zonemaster-cli`` to not run the specific test that reports the problem.
+`zonemaster-cli` to not run the specific test that reports the problem.
 This can be done by using a special *profile* (this was called *policy* in v1):
 
 1. Find the tag of the specific test that you don't want to run anymore, by
-   supplying the verbose flag.
+   supplying the `-v` flag.
 
    ```
-   debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl --verbose
+   debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl -v
    WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
    3.598s WARNING All authoritative nameservers have the IPv4 addresses in the same
                  AS (209453). IPV4_ONE_ASN
@@ -136,7 +136,7 @@ This can be done by using a special *profile* (this was called *policy* in v1):
 1. Edit the profile, and change the entries to have a severity that is *below*
    the warning level that you intend to use. For the above case it means these
    entries will have `WARNING` changed to `NOTICE`:
- 
+
    ```
            "IPV4_ONE_ASN" : "NOTICE",
            "IPV6_ONE_ASN" : "NOTICE",
