@@ -116,7 +116,7 @@ If you decide that a certain reported problem is acceptable, you can configure
 This can be done by using a special *profile* (this was called *policy* in v1):
 
 1. Find the tag of the specific test that you don't want to run anymore, by
-   supplying the `-v` flag.
+   supplying the `-v` flag:
 
    ```
    debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl -v
