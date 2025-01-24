@@ -105,7 +105,7 @@ msg = {
         }
 
 # Start building the command
-subprocess_args = re.split('\s+', command)
+subprocess_args = re.split(r'\s+', command)
 
 # Set profile/policy options
 if profile is not None:
