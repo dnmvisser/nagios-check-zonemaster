@@ -3,28 +3,34 @@
 ### Usage
 
 ```
-usage: check-zonemaster.py [-h] -d DOMAIN [-w {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}]
+usage: check-zonemaster.py [-h] -d DOMAIN
+                           [-w {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}]
                            [-c {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}]
-                           [-l {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}] [--command COMMAND]
-                           [--profile PROFILE] [--policy POLICY] [-v]
+                           [-l {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}]
+                           [--command COMMAND] [--profile PROFILE]
+                           [--policy POLICY] [-v]
 
-Nagios plugin to test DNS zones. This is a wrapper around the zonemaster-cli command (https://github.com/zonemaster/zonemaster-
-cli)
+Nagios plugin to test DNS zones. This is a wrapper around the zonemaster-cli
+command (https://github.com/zonemaster/zonemaster-cli)
 
 options:
   -h, --help            show this help message and exit
-  -d DOMAIN, --domain DOMAIN
-                        Domain to test
-  -w {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}, --warning {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}
-                        Findings of this zonemaster severity level trigger a nagios WARNING
-  -c {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}, --critical {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}
-                        Findings of this zonemaster severity level trigger nagios CRITICAL
-  -l {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}, --level {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}
-                        Run zonemaster-cli with this --level option. Useful for displaying extra/debug information. Defaults to
-                        the --warning level. It can not be higher than the --warning or --critical level
+  -d, --domain DOMAIN   Domain to test
+  -w, --warning {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}
+                        Findings of this zonemaster severity level trigger a
+                        nagios WARNING
+  -c, --critical {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}
+                        Findings of this zonemaster severity level trigger
+                        nagios CRITICAL
+  -l, --level {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}
+                        Run zonemaster-cli with this --level option. Useful
+                        for displaying extra/debug information. Defaults to
+                        the --warning level. It can not be higher than the
+                        --warning or --critical level
   --command COMMAND     zonemaster command (default: 'zonemaster-cli')
   --profile PROFILE     Path to a zonemaster profile file
-  --policy POLICY       Path to a zonemaster policy file. This is only supported in zonemaster-cli v1
+  --policy POLICY       Path to a zonemaster policy file. This is only
+                        supported in zonemaster-cli v1
   -v, --verbosity       Increase output verbosity
 ```
 
@@ -34,8 +40,7 @@ options:
   https://github.com/zonemaster/zonemaster-cli. Recent Debian based distros have
   this packaged, so `sudo apt-get install zonemaster-cli` should be enough. This
   is true for Debian 10 or later, and Ubuntu 18.04 and later.
-* Python 3.6. Doing `sudo apt-get install python3-minimal` on Debian 10 or later,
-  and Ubuntu 18.04 and later should be sufficient.
+* Python 3.6 or newer.
 
 ### Examples
 
