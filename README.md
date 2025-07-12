@@ -2,7 +2,7 @@
 
 ### Usage
 
-```
+```console
 usage: check-zonemaster.py [-h] -d DOMAIN
                            [-w {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}]
                            [-c {DEBUG3,DEBUG2,DEBUG,INFO,NOTICE,WARNING,ERROR,CRITICAL}]
@@ -46,14 +46,14 @@ options:
 
 A domain with no issues
 
-```
+```console
 debian@nagios:~$ ./check-zonemaster.py --domain zonemaster.net
 OK: Found no issues with severity WARNING or higher for zonemaster.net
 ```
 
 A domain with some issues
 
-```
+```console
 debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl
 WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 3.210s WARNING All authoritative nameservers have the IPv4 addresses in the
@@ -90,7 +90,7 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 
 The same domain, but now we only want to see the issues with ERROR or higher
 
-```
+```console
 debian@nagios:~$ ./check-zonemaster.py --warning ERROR \
   --critical CRITICAL --level WARNING --domain tienhuis.nl
 OK: Found no issues with severity ERROR or higher for tienhuis.nl
@@ -104,7 +104,7 @@ You can also use `zonemaster-cli` from a container, this allows you to use the
 lastest version. In this case I overload the command parameter to exclude IPv6
 tests because IPv6 was too cumbersome to set up in a container:
 
-```
+```console
 debian@nagios:~$ ./check-zonemaster.py \
   --command 'podman run --rm -i zonemaster/cli --no-ipv6' --domain tienhuis.nl
 WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
@@ -117,13 +117,15 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 ### Tips
 
 If you decide that a certain reported problem is acceptable, you can configure
-`zonemaster-cli` to not run the specific test that reports the problem.
-This can be done by using a special *profile* (this was called *policy* in v1):
+`zonemaster-cli` to run the specific test with a lowered severity level, so
+that it does not trigger a notification anymore, essentially silencing the
+problem. This can be done by using a special *profile* (this was called
+*policy* in v1):
 
-1. Find the tag of the specific test that you don't want to run anymore, by
+1. Find the message tag of the specific test that you want to silence, by
    supplying the `-v` flag:
 
-   ```
+   ```console
    debian@nagios:~$ ./check-zonemaster.py --domain tienhuis.nl -v
    WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
    3.598s WARNING All authoritative nameservers have the IPv4 addresses in the same
@@ -132,34 +134,89 @@ This can be done by using a special *profile* (this was called *policy* in v1):
                  AS (209453). IPV6_ONE_ASN
    ```
 
-1. Dump the default profile to a custom file:
+1. Save the default profile:
 
-   ```
-   zonemaster-cli --dump-profile > myprofile.json
+   ```console
+   zonemaster-cli --dump-profile > profile.json
    ```
 
 1. Edit the profile, and change the entries to have a severity that is *below*
    the warning level that you intend to use. For the above case it means these
    entries will have `WARNING` changed to `NOTICE`:
 
-   ```
+   ```console
            "IPV4_ONE_ASN" : "NOTICE",
            "IPV6_ONE_ASN" : "NOTICE",
    ```
 
-1. Now supply this adjusted profile:
+1. Now supply the profile:
 
-   ```
-   debian@nagios:~$ ./check-zonemaster.py --profile myprofile.json \
+   ```console
+   debian@nagios:~$ ./check-zonemaster.py --profile profile.json \
      --domain tienhuis.nl -v
    OK: Found no issues with severity WARNING or higher for tienhuis.nl
    ```
 
    If you use containers you need to make sure the profile file is mounted:
 
-   ```
+   ```console
    debian@nagios:~$ ./check-zonemaster.py --command 'podman run --rm -i \
-     --mount type=bind,source=/etc/nagios4/myprofile.json,target=/p.json \
+     --mount type=bind,source=/etc/nagios4/profile.json,target=/p.json \
      zonemaster/cli --profile /p.json --no-ipv6' --domain tienhuis.nl
    OK: Found no issues with severity WARNING or higher for tienhuis.nl
+   ```
+
+1. To keep track of what has changed from the default profile, you can keep your
+   local changes in a separate file, using the same structure as the profile.
+   For example `changes.json`:
+
+   ```json
+   {
+     "test_levels": {
+       "CONNECTIVITY": {
+         "IPV4_ONE_ASN": "NOTICE",
+         "IPV6_ONE_ASN": "NOTICE",
+         "CN04_IPV6_SINGLE_PREFIX": "NOTICE"
+       },
+       "DNSSEC": {
+         "DS03_ILLEGAL_SALT_LENGTH": "NOTICE",
+         "DS03_ILLEGAL_ITERATION_VALUE": "NOTICE"
+       }
+     }
+   }
+   ```
+
+   You can then use `jq` to merge those changes into the default profile of the
+   version of `zonemaster-cli` that you're running:
+
+   ```shell
+   # fetch default profile
+   zonemaster-cli --dump-profile | jq > default.json
+
+   # merge local changes into a new custom profile
+   jq -s 'reduce .[] as $obj ({}; . * $obj)' default.json changes.json > profile.json
+   ```
+
+   To verify:
+
+   ```console
+   diff default.json profile.json
+   212c212
+   <       "CN04_IPV6_SINGLE_PREFIX": "WARNING",
+   ---
+   >       "CN04_IPV6_SINGLE_PREFIX": "NOTICE",
+   217c217
+   <       "IPV4_ONE_ASN": "WARNING",
+   ---
+   >       "IPV4_ONE_ASN": "NOTICE",
+   221c221
+   <       "IPV6_ONE_ASN": "WARNING",
+   ---
+   >       "IPV6_ONE_ASN": "NOTICE",
+   333,334c333,334
+   <       "DS03_ILLEGAL_ITERATION_VALUE": "WARNING",
+   <       "DS03_ILLEGAL_SALT_LENGTH": "WARNING",
+   ---
+   >       "DS03_ILLEGAL_ITERATION_VALUE": "NOTICE",
+   >       "DS03_ILLEGAL_SALT_LENGTH": "NOTICE",
    ```
