@@ -64,7 +64,7 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 
 A domain with some issues, but also print the lesser issues
 
-```
+```console
 debian@nagios:~$ ./check-zonemaster.py  --level NOTICE --domain tienhuis.nl
 WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 3.496s WARNING All authoritative nameservers have the IPv4 addresses in the
@@ -101,12 +101,15 @@ OK: Found no issues with severity ERROR or higher for tienhuis.nl
 ```
 
 You can also use `zonemaster-cli` from a container, this allows you to use the
-lastest version. In this case I overload the command parameter to exclude IPv6
-tests because IPv6 was too cumbersome to set up in a container:
+lastest version, and avoids various dependency conflicts. To do this, use the
+`--command` option to point to a command that will run the container. This can
+include several contain specific options, in this case I use host based
+networking, to ensure that IPv6 works:
 
 ```console
 debian@nagios:~$ ./check-zonemaster.py \
-  --command 'podman run --rm -i zonemaster/cli --no-ipv6' --domain tienhuis.nl
+  --command 'podman run --rm --network host docker.io/zonemaster/cli' \
+  --domain tienhuis.nl
 WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 7.017s WARNING All authoritative nameservers have their IPv4 addresses in the
                same AS (209453).
@@ -119,8 +122,7 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
 If you decide that a certain reported problem is acceptable, you can configure
 `zonemaster-cli` to run the specific test with a lowered severity level, so
 that it does not trigger a notification anymore, essentially silencing the
-problem. This can be done by using a special *profile* (this was called
-*policy* in v1):
+problem. This can be done by using a special *profile*:
 
 1. Find the message tag of the specific test that you want to silence, by
    supplying the `-v` flag:
@@ -153,22 +155,22 @@ problem. This can be done by using a special *profile* (this was called
 
    ```console
    debian@nagios:~$ ./check-zonemaster.py --profile profile.json \
-     --domain tienhuis.nl -v
+     --domain tienhuis.nl
    OK: Found no issues with severity WARNING or higher for tienhuis.nl
    ```
 
    If you use containers you need to make sure the profile file is mounted:
 
    ```console
-   debian@nagios:~$ ./check-zonemaster.py --command 'podman run --rm -i \
-     --mount type=bind,source=/etc/nagios4/profile.json,target=/p.json \
-     zonemaster/cli --profile /p.json --no-ipv6' --domain tienhuis.nl
+   debian@nagios:~$ ./check-zonemaster.py \
+     --command 'podman run --rm --mount type=bind,source=/etc/nagios4/profile.json,target=/p.json docker.io/zonemaster/cli --profile /p.json' \
+     --domain tienhuis.nl
    OK: Found no issues with severity WARNING or higher for tienhuis.nl
    ```
 
 1. To keep track of what has changed from the default profile, you can keep your
-   local changes in a separate file, using the same structure as the profile.
-   For example `changes.json`:
+   local changes in a separate file, using the same structure as the profile,
+   for example `changes.json`:
 
    ```json
    {
@@ -197,10 +199,9 @@ problem. This can be done by using a special *profile* (this was called
    jq -s 'reduce .[] as $obj ({}; . * $obj)' default.json changes.json > profile.json
    ```
 
-   To verify:
+   To verify, run `diff default.json profile.json`:
 
-   ```console
-   diff default.json profile.json
+   ```diff
    212c212
    <       "CN04_IPV6_SINGLE_PREFIX": "WARNING",
    ---
@@ -221,7 +222,7 @@ problem. This can be done by using a special *profile* (this was called
    >       "DS03_ILLEGAL_SALT_LENGTH": "NOTICE",
    ```
 
-   If you use ansible then you could automate this, for example:
+   If you use ansible then you could automate things with a playbook like:
 
    ```yaml
    ---
