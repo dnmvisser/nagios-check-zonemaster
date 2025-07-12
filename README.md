@@ -1,6 +1,6 @@
 # nagios-check-zonemaster
 
-### Usage
+## Usage
 
 ```console
 usage: check-zonemaster.py [-h] -d DOMAIN
@@ -34,15 +34,15 @@ options:
   -v, --verbosity       Increase output verbosity
 ```
 
-### Requirements
+## Requirements
 
 * `zonemaster-cli`. See the installation instructions on
-  https://github.com/zonemaster/zonemaster-cli. Recent Debian based distros have
-  this packaged, so `sudo apt-get install zonemaster-cli` should be enough. This
+  [https://github.com/zonemaster/zonemaster-cli](https://github.com/zonemaster/zonemaster-cli).  Recent Debian based distros have this packaged, so `sudo apt-get install
+  zonemaster-cli` should be enough. This
   is true for Debian 10 or later, and Ubuntu 18.04 and later.
 * Python 3.6 or newer.
 
-### Examples
+## Examples
 
 A domain with no issues
 
@@ -114,7 +114,7 @@ WARNING: Found 2 issues with severity WARNING or higher for tienhuis.nl
                same AS (209453).
 ```
 
-### Tips
+## Tips
 
 If you decide that a certain reported problem is acceptable, you can configure
 `zonemaster-cli` to run the specific test with a lowered severity level, so
@@ -219,4 +219,40 @@ problem. This can be done by using a special *profile* (this was called
    ---
    >       "DS03_ILLEGAL_ITERATION_VALUE": "NOTICE",
    >       "DS03_ILLEGAL_SALT_LENGTH": "NOTICE",
+   ```
+
+   If you use ansible then you could automate this, for example:
+
+   ```yaml
+   ---
+   - name: Ensure custom zonemaster profile is available
+     hosts: nagios
+     tasks:
+
+       - name: Fetch default zonemaster profile
+         ansible.builtin.command:
+           cmd: zonemaster-cli --dump-profile
+         register: zmp
+         changed_when: false
+         check_mode: false
+
+       - name: Ensure custom zonemaster policy is available
+         ansible.builtin.copy:
+           content: "{{ zmp.stdout
+             | from_json
+             | combine(zonemaster_config, recursive=True)
+             | to_nice_json }}"
+           dest: /etc/nagios4/zonemaster-profile.json
+           mode: "0644"
+           owner: root
+         vars:
+           zonemaster_config:
+             test_levels:
+               CONNECTIVITY:
+                 IPV4_ONE_ASN: NOTICE
+                 IPV6_ONE_ASN: NOTICE
+                 CN04_IPV6_SINGLE_PREFIX: NOTICE
+               DNSSEC:
+                 DS03_ILLEGAL_SALT_LENGTH: NOTICE
+                 DS03_ILLEGAL_ITERATION_VALUE: NOTICE
    ```
