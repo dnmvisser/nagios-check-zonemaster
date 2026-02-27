@@ -125,7 +125,7 @@ if policy is not None:
 subprocess_args.extend(
     [
         "--json_stream",
-        "--json_translate",  # This is now deprecated
+        "--no-raw",
         "--level",
         level,
         domain,
